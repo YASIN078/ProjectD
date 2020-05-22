@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-import win32api
+#import win32api
 
 cap = cv2.VideoCapture('Vid.mp4')
 frame_width = int( cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -49,7 +49,7 @@ while cap.isOpened():
         cv2.destroyAllWindows()
         cap.release()
         out.release()
-        win32api.MessageBox(0,'Video Finished','Done!')
+        #win32api.MessageBox(0,'Video Finished','Done!')
 
 cv2.destroyAllWindows()
 cap.release()
