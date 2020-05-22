@@ -3,6 +3,7 @@ import numpy as np
 #import win32api
 
 cap = cv2.VideoCapture('Vid.mp4')
+#face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 frame_width = int( cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 
 frame_height =int( cap.get( cv2.CAP_PROP_FRAME_HEIGHT))
@@ -37,9 +38,15 @@ while cap.isOpened():
                        1, (0, 0, 255), 3)
         #cv2.drawContours(frame1, contours, -1, (0, 255, 0), 2)
 
+            #faces = face_cascade.detectMultiScale(gray, 1.1, 4)
+
+            #for (x, y, w, h) in faces:
+
+                #cv2.rectangle(cap, (x, y), (x+w, y+h), (255, 255, 0), 3)
+
         image = cv2.resize(frame1, (1280,720))
         out.write(image)
-        cv2.imshow("feed", frame1)
+        cv2.imshow("feed", cv2.flip(frame1, 0))
         frame1 = frame2
         ret, frame2 = cap.read()
 
