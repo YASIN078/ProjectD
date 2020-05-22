@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import win32api
+import funcs
 
 cap = cv2.VideoCapture('Vid.mp4')
 frame_width = int( cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -24,18 +25,16 @@ while cap.isOpened():
         dilated = cv2.dilate(thresh, None, iterations=2)
         contours, _ = cv2.findContours(dilated, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         
+        rectangles = []
         for contour in contours:
-
-            (x, y, w, h) = cv2.boundingRect(contour)
-
-            if cv2.contourArea(contour) < 900:
-                continue
+            rectangles.append(cv2.boundingRect(contour))
+        
+        rectangles = funcs.reduceContours(rectangles)
+        
+        for rect in rectangles:
+            (x, y, w, h) = rect
             cv2.rectangle(frame1, (x, y), (x+w, y+h), (0, 255, 0), 3)
-            cv2.putText(frame1, "".format(), (x, y), cv2.FONT_HERSHEY_SIMPLEX,
-            1, (0, 0, 255), 3)
-            cv2.putText(frame1, "".format(), (10, 20), cv2.FONT_HERSHEY_SIMPLEX,
-                       1, (0, 0, 255), 3)
-        #cv2.drawContours(frame1, contours, -1, (0, 255, 0), 2)
+            
 
         image = cv2.resize(frame1, (1280,720))
         out.write(image)
