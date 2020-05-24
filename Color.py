@@ -1,25 +1,31 @@
-import cv2
 import numpy as np
-
-face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+import cv2  
 
 cap = cv2.VideoCapture('Vid.mp4')
 
 while True:
+    _, frame = cap.read()
+    # Convert BGR to HSV
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    # define range of blue color in HSV
+    lower_white = np.array([0,255,0])
+    upper_white = np.array([0,0,0])
+    mask = cv2.inRange (hsv, lower_white, upper_white)
+    bluecnts = cv2.findContours(mask.copy(),
+                              cv2.RETR_EXTERNAL,
+                              cv2.CHAIN_APPROX_SIMPLE)[-2]
 
-    _, img = cap.read()
+    if len(bluecnts)>0:
+        blue_area = max(bluecnts, key=cv2.contourArea)
+        (xg,yg,wg,hg) = cv2.boundingRect(blue_area)
+        cv2.rectangle(frame,(xg,yg),(xg+wg, yg+hg),(0,255,255),2)
 
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    cv2.imshow('frame',cv2.flip(frame, 0))
+    cv2.imshow('mask',mask)
 
-    faces = face_cascade.detectMultiScale(gray, 1.1, 4)
-
-    for (x, y, w, h) in faces:
-        cv2.rectangle(img, (x, y), (x+w, y+h), (255, 0, 0), 2)
-
-    cv2.imshow('img', cv2.flip(img, 0))
-
-    k = cv2.waitKey(30) & 0xff
-    if k==27:
+    k = cv2.waitKey(5) 
+    if k == 27:
         break
 
 cap.release()
+cv2.destroyAllWindows()
