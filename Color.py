@@ -8,8 +8,8 @@ while True:
     # Convert BGR to HSV
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     # define range of blue color in HSV
-    lower_white = np.array([0,255,0])
-    upper_white = np.array([0,0,0])
+    lower_white = np.array([255,0,255])
+    upper_white = np.array([255,255,0])
     mask = cv2.inRange (hsv, lower_white, upper_white)
     bluecnts = cv2.findContours(mask.copy(),
                               cv2.RETR_EXTERNAL,
