@@ -39,12 +39,18 @@ while success:
     if cv2.waitKey(1) == ord('q'):
         break
 
-def drawRect(x, y, w, h, c = ''):
-    cv2.create_rectangle(x, y, x + w, y + h, fill=c)
 
+class Target:
 
+    def __init__(self, _box, _frame):
+        self.box = _box
+        self.tracker = cv2.TrackerCSRT_create()
+        self.tracker.init(frame, (box[0], box[1], box[2], box[3]))
+        self.items = []
 
-
+    def update(self, frame):
+        _, self.box = tracker.update(frame)
+        cv2.rectangle(frame, p1, p2, (200, 0, 200), 5, 1)
 
 
 
