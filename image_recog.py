@@ -33,7 +33,7 @@ class Target:
         for y, item in enumerate(self.items):
             cv2.putText(frame, item, (int(self.x) + int(self.w),
                                       int(self.y) + 25 * y), cv2.QT_FONT_BLACK, 1, (0, 0, 0), 1)
-            
+
 vidcap = cv2.VideoCapture("Souf.m4v")
 success, frame = vidcap.read()
 targets = [Target((353, 123, 51, 22), frame), Target((509, 108, 104, 73), frame)]
@@ -46,7 +46,6 @@ if len(sys.argv) > 1:
 
 while True:
 
-    print(ColorDistance(frame[325, 114], [ 59, 72, 200]))
 
     success, frame = vidcap.read()
     if cv2.waitKey(1) == ord('q') or not success:
