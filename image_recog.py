@@ -3,9 +3,43 @@ import numpy
 import math
 import sys
 
+def DrawRect(frame, x, y, w, h, color = (200, 0, 0)):
+    """Draws a rectangle in the given frame with the coordinates given"""
+    cv2.rectangle(frame, (x, y), (x + w, y + h), (200, 0, 0), 1, 0)
+
+
+def CompareColors(c1, c2):
+    """Returns a value between 0 and 442 compared to two colors"""
+    return math.sqrt(
+        (c1[0] - c2[0])**2 +
+        (c1[1] - c2[1])**2 +
+        (c1[2] - c2[2])**2
+    )
+
+def GetClosestColor(frame, box, targetColor):
+    """Returns the closest color's score compared to the target color"""
+    min_x = box[0]
+    max_x = min_x + box[1]
+    min_y = box[2]
+    max_y = min_y + box[3]
+
+    BEST_SCORE = 442
+
+    best_color = [-1]
+    for x in range(min_x, max_x):
+        for y in range(min_y, max_y):
+            score = CompareColors(frame[y, x], targetColor)
+            if score < BEST_SCORE:
+                BEST_SCORE = score
+
+    return BEST_SCORE
+
+def CheckObject(frame, box, color):
+    DrawRect(frame, box[0], box[1], box[2], box[3])
+    return GetClosestColor(frame, box, color)
+
 
 class Target:
-
     def __init__(self, _box, _frame):
         self.x = int(_box[0])
         self.y = int(_box[1])
@@ -39,20 +73,38 @@ success, frame = vidcap.read()
 targets = [Target((353, 123, 51, 22), frame), Target((509, 108, 104, 73), frame)]
 
 
+# print(CompareColors([0, 0, 0], [255, 255, 255]))
+
 if len(sys.argv) > 1:
     print("HELLO")
     print(cv2.selectROI("_", frame));cv2.destroyWindow("_")
     quit(0)
 
+frameCount = 0
 while True:
-
-
-    success, frame = vidcap.read()
     if cv2.waitKey(1) == ord('q') or not success:
         break
-
     for t in targets:
         t.update(frame)
 
-    cv2.rectangle(frame, (114, 326), (130, 347), (200, 0, 0), 1, 0)
+    # Red joycon [ 58  65 211] <= joycon color
+
+    if CheckObject(frame, [79, 280, 66, 80], [58, 65, 200]) > 70:
+        print("ROOD IS OPGEPAKT", frameCount)
+
+    # Blue joycon
+    if CheckObject(frame, [203, 225, 59, 90], [162, 147, 34]) > 80:
+        print("BLAUW IS OPGEPAKT", frameCount)
+
+
+
     cv2.imshow("cv2", frame)
+
+    success, frame = vidcap.read()
+    success, frame = vidcap.read()
+    success, frame = vidcap.read()
+    success, frame = vidcap.read()
+    success, frame = vidcap.read()
+    success, frame = vidcap.read()
+
+    frameCount+=1
