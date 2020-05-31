@@ -1,58 +1,63 @@
 import cv2
-import numpy
+import numpy as np
 import math
 import sys
-
-
-class Target:
-
-    def __init__(self, _box, _frame):
-        self.x = int(_box[0])
-        self.y = int(_box[1])
-        self.w = int(_box[2])
-        self.h = int(_box[3])
-
-        self.tracker = cv2.TrackerCSRT_create()
-        self.tracker.init(_frame, (_box[0], _box[1], _box[2], _box[3]))
-        self.items = []
-
-    def update(self, frame):
-        # getting the new coordinates from box and converting to int
-        _, box = self.tracker.update(frame)
-        self.x = int(box[0])
-        self.y = int(box[1])
-        self.w = int(box[2])
-        self.h = int(box[3])
-
-        # drawing the rectangle at new location
-        cv2.rectangle(frame, (self.x, self.y),
-                      (self.x + self.w, self.y + self.h), (200, 0, 200), 5, 1)
-
-        # drawing the text next to the rectangle in a column
-        y = 0
-        for y, item in enumerate(self.items):
-            cv2.putText(frame, item, (int(self.x) + int(self.w),
-                                      int(self.y) + 25 * y), cv2.QT_FONT_BLACK, 1, (0, 0, 0), 1)
+from utils import *
 
 vidcap = cv2.VideoCapture("Souf.m4v")
 success, frame = vidcap.read()
-targets = [Target((353, 123, 51, 22), frame), Target((509, 108, 104, 73), frame)]
 
+
+targets = [
+    Target((353, 123, 51, 22), frame),
+    Target((509, 108, 104, 73), frame)
+]
+
+phones = [
+    Phone("Red joycon", [161, 155, 84], [179, 255, 255], [79, 280, 66, 70]),
+    Phone("Blue joycon", [94, 80, 2], [126, 255, 255], [203, 225, 59, 90])
+]
 
 if len(sys.argv) > 1:
-    print("HELLO")
     print(cv2.selectROI("_", frame));cv2.destroyWindow("_")
     quit(0)
 
+frameCount = 0
 while True:
-
-
-    success, frame = vidcap.read()
     if cv2.waitKey(1) == ord('q') or not success:
         break
-
     for t in targets:
         t.update(frame)
 
-    cv2.rectangle(frame, (114, 326), (130, 347), (200, 0, 0), 1, 0)
+
+    # Only check for joycons N many frames
+    if frameCount % 30 == 0:
+        DrawRect(frame, 0, 0, 10, 10, (0, 0, 200))
+
+
+        for p in phones:
+            if p.Check(frame):
+                pass
+                # if the Phone was taken before and is now back in frame
+                if p.taken:
+                    for t in targets:
+                        if p.name in t.items:
+                            t.items.remove(p.name)
+                    p.taken = False
+            else:
+                if p.taken:
+                    continue
+                bestD = 999999
+                bestT = None
+                for t in targets:
+                    d = dist(t.GetMiddle(), p.GetMiddle())
+                    if d < bestD:
+                        bestD = d
+                        bestT = t
+                p.taken = True
+                bestT.items.append(p.name)
+
     cv2.imshow("cv2", frame)
+    success, frame = vidcap.read()
+
+    frameCount+=1
