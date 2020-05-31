@@ -1,7 +1,11 @@
+import cv2
+import numpy as np
+import math
+import sys
 
 def DrawRect(frame, x, y, w, h, color = (200, 0, 0)):
     """Draws a rectangle in the given frame with the coordinates given"""
-    cv2.rectangle(frame, (x, y), (x + w, y + h), (200, 0, 0), 1, 0)
+    cv2.rectangle(frame, (x, y), (x + w, y + h), color, 1, 0)
 
 
 def CompareColors(c1, c2):
@@ -12,22 +16,26 @@ def CompareColors(c1, c2):
         (c1[2] - c2[2])**2
     )
 
+def dist(p1, p2):
+    """Returns the distance between two points"""
+    return math.sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
+
+
+
+
 def GetClosestColor(frame, box, targetColor):
     """Returns the closest color's score compared to the target color"""
+    # getting coordinates
     min_x = box[0]
     max_x = min_x + box[1]
     min_y = box[2]
     max_y = min_y + box[3]
-
-    BEST_SCORE = 442
-
-    best_color = [-1]
+    BEST_SCORE = 250
     for x in range(min_x, max_x):
         for y in range(min_y, max_y):
             score = CompareColors(frame[y, x], targetColor)
             if score < BEST_SCORE:
                 BEST_SCORE = score
-
     return BEST_SCORE
 
 def CheckObject(frame, box, color):
@@ -63,3 +71,37 @@ class Target:
         for y, item in enumerate(self.items):
             cv2.putText(frame, item, (int(self.x) + int(self.w),
                                       int(self.y) + 25 * y), cv2.QT_FONT_BLACK, 1, (0, 0, 0), 1)
+    def GetMiddle(self):
+        return [self.x + self.w / 2, self.y + self.h / 2]
+
+
+
+class Phone:
+    def __init__(self, _name, _low_color, _high_color, _box):
+        self.name = _name
+        self.low_color = np.array(_low_color)
+        self.high_color = np.array(_high_color)
+        self.box = _box
+        self.taken = False
+
+    def Check(self, frame):
+        """Check if phone is still there (return true if found inside frame)"""
+        DrawRect(frame, self.box[0], self.box[1], self.box[2], self.box[3], (0, 0, 0))
+        img_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        mask = cv2.inRange(img_hsv, self.low_color, self.high_color)
+        img_result = cv2.bitwise_and(frame, frame, mask=mask)
+
+        i = 0
+        # for every pixel inside boundaries of phone
+        for x in range(self.box[0], self.box[0] + self.box[2]):
+            for y in range(self.box[1], self.box[1] + self.box[3]):
+                p = img_result[y, x]
+                if any(p) > 0:
+                    return True
+        return False
+
+    def GetMiddle(self):
+        return [
+            self.box[0] + self.box[2] / 2,
+            self.box[1] + self.box[3] / 2,
+        ]
